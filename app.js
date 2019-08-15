@@ -4,11 +4,15 @@ let app = require("express")();
 let http = require("http").Server(app);
 let io = require("socket.io")(http);
 
+let currentWatchingVideoUrl = 'https://chocoloco.tk/big_buck_bunny.mp4';
+
 io.on("connection", socket => {
     let username;
 
     // Log whenever a user connects
   console.log("user connected");
+  // Send the new client the current url.
+  io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
 
     socket.on("JOIN_ROOM", message => {
         console.log("JOIN_ROOM Received: " + message);
@@ -54,6 +58,7 @@ io.on("connection", socket => {
 
   socket.on("SET_VIDEO_URL", message => {
     console.log("SET_VIDEO_URL Received: " + message);
+    currentWatchingVideoUrl = JSON.parse(message)['text'];
     io.emit("message", { type: "SET_VIDEO_URL", text: message});
   });
 
