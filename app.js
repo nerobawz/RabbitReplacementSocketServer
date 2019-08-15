@@ -1,17 +1,28 @@
 
-/*
+
 let app = require("express")();
 let http = require("http").Server(app);
 let io = require("socket.io")(http);
 
 io.on("connection", socket => {
-  // Log whenever a user connects
+    let username;
+
+    // Log whenever a user connects
   console.log("user connected");
+
+    socket.on("JOIN_ROOM", message => {
+        console.log("JOIN_ROOM Received: " + message);
+        username = JSON.parse(message)['user'];
+        io.emit("message", { type: "JOIN_ROOM", text: message });
+    });
+
 
   // Log whenever a client disconnects from our websocket server
   socket.on("disconnect", function() {
-    console.log("user disconnected");
+      console.log("user disconnected " + username);
+      io.emit("message", { type: "LEAVE_ROOM", text: '{"type":7,"text":"Test message","user":"'+username+'"}'});
   });
+
 
   // When we receive a 'message' event from our client, print out
   // the contents of that message and then echo it back to our client
@@ -52,7 +63,8 @@ io.on("connection", socket => {
 http.listen(5000, () => {
   console.log("started on port 5000");
 });
-*/
+
+/*
 
 var fs = require( 'fs' );
 var app = require('express')();
@@ -106,3 +118,4 @@ io.sockets.on('connection',function (socket) {
     io.emit("message", { type: "SET_VIDEO_URL", text: message});
   });
 });
+*/
