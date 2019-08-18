@@ -69,6 +69,16 @@ io.on("connection", socket => {
         io.emit("message", { type: "PAUSE_VIDEO", text: message});
     });
 
+    socket.on("STARTED_TYPING", message => {
+        console.log("STARTED_TYPING Received: " + message);
+        io.emit("message", { type: "STARTED_TYPING", text: message});
+    });
+
+    socket.on("STOPPED_TYPING", message => {
+        console.log("STOPPED_TYPING Received: " + message);
+        io.emit("message", { type: "STOPPED_TYPING", text: message});
+    });
+
     socket.on("CURRENT_TIME", message => {
         // console.log("CURRENT_TIME Received: " + message);
         io.emit("message", { type: "CURRENT_TIME", text: message});
