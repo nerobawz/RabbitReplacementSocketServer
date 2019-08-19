@@ -26,15 +26,17 @@ let currentWatchingVideoUrl = 'https://chocoloco.tk/big_buck_bunny.mp4';
 
 io.on("connection", socket => {
     let username;
-
+    let id;
     // Log whenever a user connects
-    console.log("user connected");
+    console.log("user connected", socket.id);
+
     // Send the new client the current url.
     io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
 
     socket.on("JOIN_ROOM", message => {
         console.log("JOIN_ROOM Received: " + message);
         username = JSON.parse(message)['user'];
+        id = JSON.parse(message)['id'];
         io.emit("message", { type: "JOIN_ROOM", text: message });
     });
 
@@ -42,7 +44,7 @@ io.on("connection", socket => {
     // Log whenever a client disconnects from our websocket server
     socket.on("disconnect", function() {
         console.log("user disconnected " + username);
-        io.emit("message", { type: "LEAVE_ROOM", text: '{"type":7,"text":"Test message","user":"'+username+'"}'});
+        io.emit("message", { type: "LEAVE_ROOM", text: '{"type":7,"text":"Test message","id":"'+id+'","user":"'+username+'"}'});
     });
 
 
