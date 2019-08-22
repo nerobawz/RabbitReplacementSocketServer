@@ -42,8 +42,8 @@ io.on("connection", socket => {
 
 
     // Log whenever a client disconnects from our websocket server
-    socket.on("disconnect", function() {
-        console.log("user disconnected " + username);
+    socket.on("disconnect", function(reason) {
+        console.log("user disconnected " + username + " " + reason);
         io.emit("message", { type: "LEAVE_ROOM", text: '{"type":7,"text":"Test message","id":"'+id+'","user":"'+username+'"}'});
     });
 
@@ -79,6 +79,11 @@ io.on("connection", socket => {
     socket.on("STOPPED_TYPING", message => {
         console.log("STOPPED_TYPING Received: " + message);
         io.emit("message", { type: "STOPPED_TYPING", text: message});
+    });
+
+    socket.on("CHANGED_USERNAME", message => {
+        console.log("CHANGED_USERNAME Received: " + message);
+        io.emit("message", { type: "CHANGED_USERNAME", text: message});
     });
 
     socket.on("CURRENT_TIME", message => {
