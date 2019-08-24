@@ -1,11 +1,11 @@
 const production = process.env.NODE_ENV === 'Production';
 let io;
-var fs = require('fs');
+let fs = require('fs');
 const chatlogFile = 'histoooory';
-var logStreamW = fs.createWriteStream(chatlogFile, {'flags': 'a'});
-var logStreamR = fs.createReadStream(chatlogFile);
+let logStreamW = fs.createWriteStream(chatlogFile, {'flags': 'a'});
+let logStreamR = fs.createReadStream(chatlogFile);
 let chatMessages = [];
-readLines(logStreamR,func);
+readLines(logStreamR);
 
 
 if(!production){
@@ -116,18 +116,18 @@ io.on("connection", socket => {
 });
 
 
-function readLines(input, func) {
+function readLines(input) {
     console.log('readlines:');
-    var remaining = '';
+    let remaining = '';
 
     input.on('data', function(data) {
         remaining += data;
-        var index = remaining.indexOf('\n');
-        var last  = 0;
+        let index = remaining.indexOf('\n');
+        let last  = 0;
         while (index > -1) {
-            var line = remaining.substring(last, index);
+            let line = remaining.substring(last, index);
             last = index + 1;
-            func(line);
+            chatMessages.push(line);
             index = remaining.indexOf('\n', last);
         }
 
@@ -136,12 +136,7 @@ function readLines(input, func) {
 
     input.on('end', function() {
         if (remaining.length > 0) {
-            func(remaining);
+            chatMessages.push(remaining);
         }
     });
-}
-
-
-function func(data) {
-    chatMessages.push(data);
 }
