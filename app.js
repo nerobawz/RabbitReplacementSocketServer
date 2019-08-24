@@ -37,9 +37,13 @@ io.on("connection", socket => {
     let id;
     // Log whenever a user connects
     console.log("user connected", socket.id);
-    io.to(socket.id).emit("message",{type:"SET_USER_ID",text:'{"type":11,"text":"'+socket.id+'"}'});
-    // Send the new client the current url.
-    io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
+        socket.on("CONNECT", message =>{
+        console.log("CONNECT received: " + message);
+            io.to(socket.id).emit("message",{type:"SET_USER_ID",text:'{"type":11,"text":"'+socket.id+'"}'});
+            // Send the new client the current url.
+            io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
+
+        });
 
     socket.on("JOIN_ROOM", message => {
         console.log("JOIN_ROOM Received: " + message);
