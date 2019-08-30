@@ -4,9 +4,11 @@ let fs = require('fs');
 const chatlogFile = 'histoooory';
 let logStreamW = fs.createWriteStream(chatlogFile, {'flags': 'a'});
 let logStreamR = fs.createReadStream(chatlogFile);
+const TelegramBot = require('node-telegram-bot-api');
 let chatMessages = [];
 readLines(logStreamR);
-
+let token ;
+let chatRoomId = '-321065718';
 
 if(!production){
     let app = require("express")();
@@ -28,8 +30,10 @@ else{
     server.listen(5000);
 
     io = require('socket.io').listen(server);
+    token = process.env.TelegramBotToken;
 }
 
+const bot = new TelegramBot(token,{polling:false});
 let currentWatchingVideoUrl = 'https://chocoloco.tk/big_buck_bunny.mp4';
 
 io.on("connection", socket => {
@@ -37,17 +41,20 @@ io.on("connection", socket => {
     let id;
     // Log whenever a user connects
     console.log("user connected", socket.id);
-        socket.on("CONNECT", message =>{
-        console.log("CONNECT received: " + message);
-            io.to(socket.id).emit("message",{type:"SET_USER_ID",text:'{"type":11,"text":"'+socket.id+'"}'});
-            // Send the new client the current url.
-            io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
 
-        });
+    socket.on("CONNECT", message =>{
+        console.log("CONNECT received: " + message);
+        io.to(socket.id).emit("message",{type:"SET_USER_ID",text:'{"type":11,"text":"'+socket.id+'"}'});
+        // Send the new client the current url.
+        io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
+
+    });
 
     socket.on("JOIN_ROOM", message => {
         console.log("JOIN_ROOM Received: " + message);
         username = JSON.parse(message)['user'];
+        bot.sendMessage(chatRoomId,'User joined ' + username);
+
         id = JSON.parse(message)['id'];
         io.to(socket.id).emit("message", { type: "GET_HISTORY", text: '{"type":12,"text":'+JSON.stringify(chatMessages)+'}'});
         socket.broadcast.emit("message", { type: "JOIN_ROOM", text: message });
@@ -57,6 +64,8 @@ io.on("connection", socket => {
     // Log whenever a client disconnects from our websocket server
     socket.on("disconnect", function(reason) {
         console.log("user disconnected " + username + " " + reason);
+        bot.sendMessage(chatRoomId,'User disconnect ' + username + " " + reason);
+
         socket.broadcast.emit("message", { type: "LEAVE_ROOM", text: '{"type":7,"text":"Test message","id":"'+socket.id+'","user":"'+username+'"}'});
     });
 
@@ -66,6 +75,9 @@ io.on("connection", socket => {
     // using `io.emit()`
     socket.on("SEND_CHAT_MESSAGE", message => {
         console.log("SEND_CHAT_MESSAGE Received: " + message);
+        const msg = JSON.parse(message);
+        bot.sendMessage(chatRoomId,msg['text']['user'] + ": " + msg['text']['text']);
+
         chatMessages.push(message.toString());
         logStreamW.write(message + '\n');
         socket.broadcast.emit("message", { type: "SEND_CHAT_MESSAGE", text: message });
@@ -115,6 +127,11 @@ io.on("connection", socket => {
         console.log("SET_VIDEO_URL Received: " + message);
         currentWatchingVideoUrl = JSON.parse(message)['text'];
         socket.broadcast.emit("message", { type: "SET_VIDEO_URL", text: message});
+    });
+
+    socket.on("RELOAD", message => {
+        console.log("RELOAD Received: " + message);
+        socket.broadcast.emit("message", { type: "RELOAD", text: message});
     });
 
 });
