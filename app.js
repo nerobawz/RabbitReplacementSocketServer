@@ -35,6 +35,7 @@ else{
 
 const bot = new TelegramBot(token,{polling:false});
 let currentWatchingVideoUrl = 'https://chocoloco.tk/big_buck_bunny.mp4';
+let videoInfo = {"url":"https://chocoloco.tk/big_buck_bunny.mp4","title":"bimbob"};
 
 io.on("connection", socket => {
     let username;
@@ -46,14 +47,14 @@ io.on("connection", socket => {
         console.log("CONNECT received: " + message);
         io.to(socket.id).emit("message",{type:"SET_USER_ID",text:'{"type":11,"text":"'+socket.id+'"}'});
         // Send the new client the current url.
-        io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":"'+currentWatchingVideoUrl+'"}'});
+        io.to(socket.id).emit("message", { type: "SET_VIDEO_URL", text: '{"type":5,"text":'+JSON.stringify(videoInfo)+'}'});
 
     });
 
     socket.on("JOIN_ROOM", message => {
         console.log("JOIN_ROOM Received: " + message);
         username = JSON.parse(message)['user'];
-        bot.sendMessage(chatRoomId,'User joined ' + username);
+        sendTelegramMessage(chatRoomId,'User joined ' + username);
 
         id = JSON.parse(message)['id'];
         io.to(socket.id).emit("message", { type: "GET_HISTORY", text: '{"type":12,"text":'+JSON.stringify(chatMessages)+'}'});
@@ -64,7 +65,7 @@ io.on("connection", socket => {
     // Log whenever a client disconnects from our websocket server
     socket.on("disconnect", function(reason) {
         console.log("user disconnected " + username + " " + reason);
-        bot.sendMessage(chatRoomId,'User disconnect ' + username + " " + reason);
+        sendTelegramMessage(chatRoomId,'User disconnect ' + username + " " + reason);
 
         socket.broadcast.emit("message", { type: "LEAVE_ROOM", text: '{"type":7,"text":"Test message","id":"'+socket.id+'","user":"'+username+'"}'});
     });
@@ -76,7 +77,7 @@ io.on("connection", socket => {
     socket.on("SEND_CHAT_MESSAGE", message => {
         console.log("SEND_CHAT_MESSAGE Received: " + message);
         const msg = JSON.parse(message);
-        bot.sendMessage(chatRoomId,msg['text']['user'] + ": " + msg['text']['text']);
+        sendTelegramMessage(chatRoomId,msg['text']['user'] + ": " + msg['text']['text']);
 
         chatMessages.push(message.toString());
         logStreamW.write(message + '\n');
@@ -125,7 +126,7 @@ io.on("connection", socket => {
 
     socket.on("SET_VIDEO_URL", message => {
         console.log("SET_VIDEO_URL Received: " + message);
-        currentWatchingVideoUrl = JSON.parse(message)['text'];
+        videoInfo = JSON.parse(message)['text'];
         socket.broadcast.emit("message", { type: "SET_VIDEO_URL", text: message});
     });
 
@@ -160,4 +161,10 @@ function readLines(input) {
             chatMessages.push(remaining);
         }
     });
+}
+
+function sendTelegramMessage(chatid,message) {
+    if (!(token === '' || token === undefined)){
+        bot.sendMessage(chatid,message);
+    }
 }
