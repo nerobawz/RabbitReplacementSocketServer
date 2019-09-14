@@ -35,7 +35,7 @@ else{
 
 const bot = new TelegramBot(token,{polling:false});
 let currentWatchingVideoUrl = 'https://chocoloco.tk/big_buck_bunny.mp4';
-let videoInfo = {"url":"https://chocoloco.tk/big_buck_bunny.mp4","title":"bimbob"};
+let videoInfo = {"url":"https://chocoloco.tk/big_buck_bunny.mp4","title":"big buck bunny"};
 
 io.on("connection", socket => {
     let username;
